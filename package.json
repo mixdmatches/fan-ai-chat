@@ -29,6 +29,7 @@
     "dayjs": "^1.11.19",
     "lodash-es": "^4.17.21",
     "marked": "^17.0.4",
+    "nanoid": "^5.1.6",
     "openai": "^6.27.0",
     "pinia-plugin-persistedstate": "^4.5.0",
     "tippy.js": "^6.3.7",
