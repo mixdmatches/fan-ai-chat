@@ -1,0 +1,107 @@
+@use 'sass:map';
+$primary-color: #409eff;
+$primary-light: rgb(197.7, 225.9, 255);
+$success-color: #67c23a;
+$success-light-color: rgb(239.8, 248.9, 235.3);
+$warning-color: #e6a23c;
+$danger-color: #f56c6c;
+$danger-light-color: rgb(254, 240.3, 240.3);
+$info-color: #909399;
+$text-color-const: #606266;
+$hover-color: #d6dee8;
+
+$sidebar-w-max: 240px;
+$sidebar-w-min: 70px;
+$header-h: 60px;
+
+$gap-s: 8px;
+$gap-m: 16px;
+$gap-l: 24px;
+
+$rad-s: 0.25em;
+$rad-m: 0.5em;
+$rad-l: 1em;
+
+$fs-s: 12px;
+$fs-m: 16px;
+$fs-l: 20px;
+// 所有主题样式
+$bg-color: (
+  light: #fff,
+  dark: #091a28,
+);
+
+$input-bg-color: (
+  light: #f3f4f6,
+  dark: #404045,
+);
+
+$scrollbar-bg-color: (
+  light: #f0f2f5,
+  dark: #142338,
+);
+
+$sidebar-color: (
+  light: #f0f2f5,
+  dark: #142338,
+);
+
+$title-color: (
+  light: #363636,
+  dark: #ffffff,
+);
+
+$text-color: (
+  light: #2c3e50,
+  dark: #f8faff,
+);
+
+$border-color: (
+  light: #e4e7ed,
+  dark: #505153,
+);
+
+$message-bg-color: (
+  light: #f5f5f5,
+  dark: #414158,
+);
+
+$box-shadow-color: (
+  light: rgba(0, 0, 0, 0.1),
+  dark: rgba(0, 0, 0, 0.3),
+);
+
+$hover-box-shadow-color: (
+  light: rgba(0, 0, 0, 0.2),
+  dark: rgba(0, 0, 0, 0.5),
+);
+
+$active-box-shadow-color: (
+  light: rgba(0, 0, 0, 0.3),
+  dark: rgba(0, 0, 0, 0.7),
+);
+
+$disabled-box-shadow-color: (
+  light: rgba(0, 0, 0, 0.1),
+  dark: rgba(0, 0, 0, 0.3),
+);
+
+$hover-color: (
+  light: #abb2bd,
+  dark: #494949,
+);
+// 主题化样式
+// $key: 样式名
+// $valueMap: 样式值map
+@mixin themify($properties) {
+  // 主题列表
+  $themes: light, dark;
+
+  @each $theme in $themes {
+    [data-theme='#{$theme}'] & {
+      @each $property, $valueMap in $properties {
+        #{$property}: map.get($valueMap, $theme);
+      }
+    }
+  }
+}

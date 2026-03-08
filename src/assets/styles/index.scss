@@ -1,0 +1,49 @@
+@forward './variables.scss';
+@forward './reset.scss';
+
+html {
+  transition: all 0.3s ease;
+}
+
+.btn {
+  display: flex;
+  justify-content: center;
+  gap: $gap-s;
+  align-items: center;
+  padding: $gap-s;
+  border-radius: $rad-m;
+  border: 1px solid;
+  border-color: $primary-color;
+  color: $primary-color;
+  font-weight: bold;
+  @include themify(
+    (
+      background-color: $bg-color,
+      box-shadow: $box-shadow-color,
+    )
+  );
+  transition: all 0.3s ease;
+}
+
+.i-icon {
+  color: #abb2bd;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  &:hover {
+    transform: scale(1.2);
+  }
+}
+
+// 滚动条轨道
+::-webkit-scrollbar-track {
+  @include themify(
+    (
+      background-color: $scrollbar-bg-color,
+    )
+  );
+}
+// // 滚动条
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
