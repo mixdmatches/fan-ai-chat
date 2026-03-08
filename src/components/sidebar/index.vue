@@ -1,9 +1,41 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useSidebarStore } from '@/stores/sidebar'
+import { useConversationStore, type Conversation } from '@/stores/conversation'
+import { computed } from 'vue'
+import dayjs from 'dayjs'
+import { DeleteOutlined } from '@ant-design/icons-vue'
+
 const sidebarStore = useSidebarStore()
 const { toggleSidebar } = sidebarStore
 const { isSidebarOpen } = storeToRefs(sidebarStore)
+
+const conversationStore = useConversationStore()
+const { conversations, currentConversationId } = storeToRefs(conversationStore)
+
+const groupedConversations = computed(() => {
+  const groups: Record<string, Conversation[]> = {}
+
+  conversations.value.forEach(conversation => {
+    const date = dayjs(conversation.createdAt).format('YYYY-MM-DD')
+    const today = dayjs().format('YYYY-MM-DD')
+    const yesterday = dayjs().subtract(1, 'day').format('YYYY-MM-DD')
+
+    let groupKey
+    if (date === today) {
+      groupKey = '今天'
+    } else if (date === yesterday) {
+      groupKey = '昨天'
+    } else {
+      groupKey = dayjs(conversation.createdAt).format('MM月DD日')
+    }
+    if (!groups[groupKey]) {
+      groups[groupKey] = []
+    }
+    groups[groupKey].push(conversation)
+  })
+  return groups
+})
 </script>
 
 <template>
@@ -15,18 +47,34 @@ const { isSidebarOpen } = storeToRefs(sidebarStore)
           <font-awesome-icon icon="circle-chevron-left" size="lg" />
         </span>
       </span>
-      <button class="btn">
-        <font-awesome-icon icon="plus" />
-        添加新对话
-      </button>
-      <div class="talk-historys">
-        <ul class="history-talk-group">
-          <li class="talk-title">今天</li>
-          <li class="t-item">
-            对话内容对话内容对话内对话内容对话 内容对话内容容
-          </li>
-          <li class="t-item">
-            对话内容对话对话内容对话内容对话内容内容对话内容
+      <a-button
+        type="primary"
+        ghost
+        @click="conversationStore.createConversation('新对话')"
+        >添加新对话</a-button
+      >
+      <div class="talk-histories">
+        <ul
+          v-for="(group, date) in groupedConversations"
+          :key="date"
+          class="history-talk-group"
+        >
+          <li class="talk-title">{{ date }}</li>
+          <li
+            v-for="conversation in group"
+            :key="conversation.id"
+            :class="{
+              't-item': true,
+              'current-t': conversation.id === currentConversationId,
+            }"
+            @click="conversationStore.switchConversation(conversation.id)"
+          >
+            <span>{{ conversation.title }}</span>
+            <DeleteOutlined
+              @click.stop="
+                conversationStore.deleteConversation(conversation.id)
+              "
+            />
           </li>
         </ul>
       </div>
@@ -79,6 +127,7 @@ const { isSidebarOpen } = storeToRefs(sidebarStore)
   .history-talk-group {
     display: flex;
     flex-direction: column;
+    gap: $gap-s;
     overflow-y: auto;
     margin-top: $gap-s;
     .talk-title {
@@ -87,6 +136,9 @@ const { isSidebarOpen } = storeToRefs(sidebarStore)
       font-size: $fs-s;
     }
     .t-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       position: relative;
       border-radius: $rad-m;
       padding: $gap-s;
@@ -95,16 +147,9 @@ const { isSidebarOpen } = storeToRefs(sidebarStore)
       white-space: nowrap; // 文本不换行
       overflow: hidden; // 溢出内容隐藏
       text-overflow: ellipsis; // 溢出部分用省略号表示
-      &:hover {
-        @include themify(
-          (
-            background-color: $hover-color,
-          )
-        );
-        transition: all 0.3s ease;
-        .in-icon {
-          display: block; // 鼠标悬停时显示图标
-        }
+      transition: background-color 0.3s ease;
+      &:hover:not(.current-t) {
+        background-color: $hover-color;
       }
       .in-icon {
         display: none;
@@ -113,14 +158,18 @@ const { isSidebarOpen } = storeToRefs(sidebarStore)
         top: 50%;
         transform: translateY(-50%); // 垂直居中
         cursor: pointer; // 鼠标悬停时显示指针
-        &:hover {
-          @include themify(
-            (
-              background-color: $hover-color,
-            )
-          );
-        }
+        // &:hover {
+        //   @include themify(
+        //     (
+        //       background-color: $hover-color,
+        //     )
+        //   );
+        // }
       }
+    }
+    .current-t {
+      background-color: $primary-color;
+      color: $text-color-hover;
     }
   }
 }

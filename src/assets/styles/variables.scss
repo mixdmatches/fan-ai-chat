@@ -9,6 +9,7 @@ $danger-light-color: rgb(254, 240.3, 240.3);
 $info-color: #909399;
 $text-color-const: #606266;
 $hover-color: #d6dee8;
+$text-color-hover: #ffffff;
 
 $sidebar-w-max: 240px;
 $sidebar-w-min: 70px;
@@ -86,10 +87,10 @@ $disabled-box-shadow-color: (
   dark: rgba(0, 0, 0, 0.3),
 );
 
-$hover-color: (
-  light: #abb2bd,
-  dark: #494949,
-);
+// $hover-color: (
+//   light: #abb2bd,
+//   dark: #494949,
+// );
 // 主题化样式
 // $key: 样式名
 // $valueMap: 样式值map

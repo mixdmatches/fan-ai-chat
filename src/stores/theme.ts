@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, watch, watchEffect } from 'vue'
+import { ref, watchEffect } from 'vue'
 
 export const useThemeStore = defineStore('theme', () => {
   // 检测系统默认主题

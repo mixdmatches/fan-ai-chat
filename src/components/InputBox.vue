@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { Sender } from 'ant-design-x-vue'
 import { Textarea } from 'ant-design-vue'
 import { defineComponent, h, shallowRef } from 'vue'
@@ -77,13 +77,26 @@ const CustomTextarea = defineComponent({
       })
   },
 })
+
+const inputValue = ref('')
+
+const onChange = (v: string) => {
+  inputValue.value = v
+}
+const onSubmit = (message: string) => {
+  console.log('Submitted:', message)
+  inputValue.value = ''
+}
 </script>
 
 <template>
   <div class="chat-input-box">
     <Sender
+      :value="inputValue"
       :components="{ input: CustomTextarea }"
       :auto-size="{ minRows: 2, maxRows: 6 }"
+      @change="onChange"
+      @submit="onSubmit"
     />
   </div>
 </template>

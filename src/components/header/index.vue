@@ -1,14 +1,22 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
+// import { storeToRefs } from 'pinia'
+import { useConversationStore } from '@/stores/conversation'
 import { useSidebarStore } from '@/stores/sidebar'
-import { useThemeStore } from '@/stores/theme'
+import { computed } from 'vue'
+// import { useThemeStore } from '@/stores/theme'
 
+const conversationStore = useConversationStore()
+const currentConversation = computed(() =>
+  conversationStore.conversations.find(
+    conversation => conversation.id === conversationStore.currentConversationId,
+  ),
+)
 const sidebarStore = useSidebarStore()
-const themeStore = useThemeStore()
+// const themeStore = useThemeStore()
 
 const { toggleSidebar } = sidebarStore
-const { switchTheme } = themeStore
-const { isLight } = storeToRefs(themeStore)
+// const { switchTheme } = themeStore
+// const { isLight } = storeToRefs(themeStore)
 </script>
 
 <template>
@@ -19,7 +27,7 @@ const { isLight } = storeToRefs(themeStore)
       </i>
     </div>
     <div class="title">
-      <p>当前对话</p>
+      <p>{{ currentConversation?.title }}</p>
       <i class="i-icon">
         <font-awesome-icon icon="angle-down" />
       </i>

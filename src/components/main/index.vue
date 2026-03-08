@@ -2,34 +2,33 @@
 import Header from '../header/index.vue'
 import InputBox from '../InputBox.vue'
 import { Bubble } from 'ant-design-x-vue'
-import { UserOutlined } from '@ant-design/icons-vue'
 import { Flex } from 'ant-design-vue'
-import { h, type CSSProperties } from 'vue'
+import { computed } from 'vue'
 import WelComeBox from '@/components/WelComeBox.vue'
-const fooAvatar: CSSProperties = {
-  color: '#f56a00',
-  backgroundColor: '#fde3cf',
-}
+import { useConversationStore } from '@/stores/conversation'
+
+const conversationStore = useConversationStore()
+
+const currentConversation = computed(() =>
+  conversationStore.conversations.find(
+    conv => conv.id === conversationStore.currentConversationId,
+  ),
+)
 </script>
 
 <template>
   <div class="main">
     <Header />
     <div class="chat-box">
-      <WelComeBox />
-      <div class="messages" style="display: none">
+      <WelComeBox v-if="currentConversation?.messages.length === 0" />
+      <div v-else class="messages">
         <Flex gap="middle" vertical>
           <Bubble
-            placement="end"
-            content="Good morning, how are you?"
-            :avatar="{ icon: h(UserOutlined), style: fooAvatar }"
+            v-for="item in currentConversation?.messages"
+            :key="item.id"
+            :placement="item.role === 'user' ? 'end' : 'start'"
+            :content="item.content"
           />
-          <Bubble
-            :typing="{ step: 2, interval: 50 }"
-            placement="start"
-            content="Hi, good morning, I'm fine!"
-          >
-          </Bubble>
         </Flex>
       </div>
     </div>

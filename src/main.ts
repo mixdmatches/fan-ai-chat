@@ -12,6 +12,8 @@ import * as IconPark from '@icon-park/vue-next'
 import Directive from '@/directives'
 // import 'animate.css'
 
+import Antd from 'ant-design-vue'
+
 import '@/assets/styles/index.scss'
 
 const app = createApp(App)
@@ -23,4 +25,5 @@ Object.keys(IconPark).forEach(key => {
 app.component('FontAwesomeIcon', FontAwesomeIcon)
 app.use(createPinia())
 app.use(Directive)
+app.use(Antd)
 app.mount('#app')
