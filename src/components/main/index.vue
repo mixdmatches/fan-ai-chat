@@ -3,7 +3,7 @@ import Header from '../header/index.vue'
 import InputBox from '../InputBox.vue'
 import { Bubble, type BubbleProps } from 'ant-design-x-vue'
 import { Flex, Typography } from 'ant-design-vue'
-import { computed, h, ref } from 'vue'
+import { computed, h, nextTick, ref, watch } from 'vue'
 import WelComeBox from '@/components/WelComeBox.vue'
 import { useConversationStore } from '@/stores/conversation'
 import markdownit from 'markdown-it'
@@ -18,8 +18,6 @@ const currentConversation = computed(() =>
     conv => conv.id === conversationStore.currentConversationId,
   ),
 )
-
-const conversation = computed(() => conversationStore.getCurrentConversation())
 
 const md = markdownit({
   html: true,
@@ -80,8 +78,6 @@ const renderMarkdown: BubbleProps['messageRender'] = content =>
   flex-direction: column;
   justify-content: space-between;
   height: 100vh;
-  overflow-y: auto;
-  scrollbar-gutter: stable;
   transition: all 0.3s ease;
   @include themify(
     (
@@ -103,6 +99,27 @@ const renderMarkdown: BubbleProps['messageRender'] = content =>
   padding: 0 $gap-l * 8;
   padding-top: $gap-l;
   transition: all 0.3s ease;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+
+  /* 滚动条样式 */
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
   h2 {
     font-weight: 400;
     @include themify(
