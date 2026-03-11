@@ -1,48 +1,52 @@
-# fan-ai-chat
+# Fan AI Chat
 
-This template should help get you started developing with Vue 3 in Vite.
+一个基于 Vue 3 构建的智能对话系统，提供流畅的 AI 聊天体验。
 
-## Recommended IDE Setup
+## 项目简介
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+Fan AI Chat 是一个现代化的 AI 对话应用，采用 Vue 3 +
+TypeScript 技术栈，集成了 Ant Design
+Vue 组件库，提供了丰富的功能和良好的用户体验。
 
-## Recommended Browser Setup
+## 技术栈
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+- 前端框架 ：Vue 3 + TypeScript
+- 状态管理 ：Pinia
+- 路由管理 ：Vue Router
+- UI 组件库 ：Ant Design Vue
+- 样式预处理器 ：SCSS
+- 构建工具 ：Vite
+- 包管理 ：pnpm
+- Markdown 解析 ：markdown-it
+- 代码高亮 ：highlight.js
 
-## Type Support for `.vue` Imports in TS
+## 快速开始
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+### 环境要求
 
-## Customize configuration
+- Node.js 18+
+- pnpm 8+
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+### 安装依赖
 
-## Project Setup
-
-```sh
-pnpm install
+```
+pnpm install
 ```
 
-### Compile and Hot-Reload for Development
+### 开发模式运行
 
-```sh
-pnpm dev
+```
+pnpm dev
 ```
 
-### Type-Check, Compile and Minify for Production
+### 构建生产版本
 
-```sh
-pnpm build
+```
+pnpm build
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+### 代码检查
 
-```sh
-pnpm lint
+```
+pnpm lint
 ```
