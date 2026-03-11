@@ -28,6 +28,10 @@ const currentConversation = computed(() =>
             :key="item.id"
             :placement="item.role === 'user' ? 'end' : 'start'"
             :content="item.content"
+            :class="{
+              'assistant-msg': item.role === 'assistant',
+              'user-msg': item.role === 'user',
+            }"
           />
         </Flex>
       </div>
@@ -65,6 +69,7 @@ const currentConversation = computed(() =>
   flex-direction: column;
   align-items: center;
   padding: 0 $gap-l * 8;
+  padding-top: $gap-l;
   transition: all 0.3s ease;
   h2 {
     font-weight: 400;
@@ -114,6 +119,9 @@ const currentConversation = computed(() =>
           )
         );
       }
+    }
+    .assistant-msg {
+      max-width: 80%;
     }
     .works {
       display: flex;

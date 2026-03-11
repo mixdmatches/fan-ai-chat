@@ -56,11 +56,8 @@ const { toggleSidebar } = sidebarStore
   top: 0;
   left: 0;
   display: flex;
-  @include themify(
-    (
-      background-color: $bg-color,
-    )
-  );
+  border-bottom: 1px solid #e4e7ed;
+  background-color: #fff;
   z-index: 999;
   transition: all 0.3s ease;
   .title {

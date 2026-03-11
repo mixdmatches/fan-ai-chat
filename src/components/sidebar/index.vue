@@ -112,6 +112,7 @@ const groupedConversations = computed(() => {
   gap: $gap-m;
   height: 100%;
   padding: $gap-m;
+  border-right: 1px solid #e4e7ed;
   @include themify(
     (
       background-color: $sidebar-color,

@@ -68,6 +68,7 @@ export const useConversationStore = defineStore('conversation', () => {
   ])
   const currentConversationId = ref<string>('3')
 
+  const isTalking = ref(false)
   // 创建新会话
   function createConversation(title: string) {
     const newConversation: Conversation = {
@@ -90,13 +91,39 @@ export const useConversationStore = defineStore('conversation', () => {
     )
     if (currentConversation) {
       const newMessage: Message = {
-        id: Date.now().toString(),
+        id: nanoid(10),
         role,
         content,
         timestamp: Date.now(),
       }
       currentConversation.messages.push(newMessage)
       currentConversation.updatedAt = Date.now()
+      return newMessage.id
+    }
+  }
+
+  function updateMessage(messageId: string, content: string) {
+    const currentConversation = conversations.find(
+      conv => conv.id === currentConversationId.value,
+    )
+    if (currentConversation) {
+      const message = currentConversation.messages.find(
+        msg => msg.id === messageId,
+      )
+      if (message) {
+        message.content = content
+        message.timestamp = Date.now()
+        currentConversation.updatedAt = Date.now()
+      }
+    }
+  }
+
+  function getMessage(messageId: string) {
+    const currentConversation = conversations.find(
+      conv => conv.id === currentConversationId.value,
+    )
+    if (currentConversation) {
+      return currentConversation.messages.find(msg => msg.id === messageId)
     }
   }
 
@@ -121,10 +148,13 @@ export const useConversationStore = defineStore('conversation', () => {
   return {
     conversations,
     currentConversationId,
+    isTalking,
     createConversation,
     addMessage,
     getCurrentConversation,
     switchConversation,
     deleteConversation,
+    updateMessage,
+    getMessage,
   }
 })

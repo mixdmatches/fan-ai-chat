@@ -1,48 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref } from 'vue'
 import { Sender } from 'ant-design-x-vue'
 import { Textarea } from 'ant-design-vue'
 import { defineComponent, h, shallowRef } from 'vue'
 import { textAreaProps } from 'ant-design-vue/es/input/inputProps'
 import type { InputFocusOptions } from 'ant-design-x-vue/typings/sender/interface'
 import { triggerFocus } from 'ant-design-vue/es/vc-input/utils/commonUtils'
+import { useConversationStore } from '@/stores/conversation'
+import { openai } from '@/utils/alibaba'
 
-const textareaRef = ref<HTMLTextAreaElement | null>()
-// 定义最大高度，可根据需求调整
-const MAX_HEIGHT = 200
-// 调整 textarea 高度的函数
-const adjustTextareaHeight = () => {
-  if (textareaRef.value) {
-    // 先将高度设置为自动，以便获取正确的 scrollHeight
-    textareaRef.value.style.height = 'auto'
-    const scrollHeight = textareaRef.value.scrollHeight
-    if (scrollHeight > MAX_HEIGHT) {
-      // 当内容高度超过最大高度时，设置高度为最大高度并显示滚动条
-      textareaRef.value.style.height = `${MAX_HEIGHT}px`
-      textareaRef.value.style.overflowY = 'auto'
-    } else {
-      // 当内容高度未超过最大高度时，正常调整高度并隐藏滚动条
-      textareaRef.value.style.height = `${scrollHeight}px`
-      textareaRef.value.style.overflowY = 'hidden'
-    }
-  }
-}
-
-onMounted(() => {
-  if (textareaRef.value) {
-    // 监听输入事件，触发高度调整
-    textareaRef.value.addEventListener('input', adjustTextareaHeight)
-    // 初始化时调整一次高度
-    adjustTextareaHeight()
-  }
-})
-
-onUnmounted(() => {
-  if (textareaRef.value) {
-    // 移除事件监听器，避免内存泄漏
-    textareaRef.value.removeEventListener('input', adjustTextareaHeight)
-  }
-})
+const conversationStore = useConversationStore()
 
 const CustomTextarea = defineComponent({
   name: 'MyInputTextArea',
@@ -83,9 +50,43 @@ const inputValue = ref('')
 const onChange = (v: string) => {
   inputValue.value = v
 }
-const onSubmit = (message: string) => {
-  console.log('Submitted:', message)
+const onSubmit = async (message: string) => {
+  if (!message.trim()) return
+
   inputValue.value = ''
+  conversationStore.addMessage(message, 'user')
+  conversationStore.isTalking = true
+
+  const waitingMessageId = conversationStore.addMessage('等待中', 'assistant')
+
+  if (waitingMessageId) {
+    let streamContent = ''
+    try {
+      const completion = await openai.chat.completions.create({
+        model: 'qwen3.5-flash',
+        messages: [{ role: 'user', content: message }],
+        stream: true,
+        stream_options: { include_usage: false },
+      })
+      for await (const chunk of completion) {
+        const content = chunk.choices[0].delta?.content || ''
+        streamContent += content
+        if (streamContent) {
+          conversationStore.updateMessage(waitingMessageId, streamContent)
+        }
+      }
+      console.error('AI 调用错误:', e)
+      // 更新等待消息为错误提示
+      conversationStore.updateMessage(
+        waitingMessageId,
+        '抱歉，我暂时无法回答你的问题，请稍后再试。',
+      )
+    } finally {
+      conversationStore.isTalking = false
+    }
+  } else {
+    conversationStore.isTalking = false
+  }
 }
 </script>
 
@@ -113,11 +114,7 @@ const onSubmit = (message: string) => {
   position: sticky;
   bottom: 0;
   left: 0;
-  @include themify(
-    (
-      background-color: $bg-color,
-    )
-  );
+  background-color: #fff;
   z-index: 999;
   transition: all 0.3s ease;
 }
