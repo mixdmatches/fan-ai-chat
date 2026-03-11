@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { Sender } from 'ant-design-x-vue'
 import { Textarea } from 'ant-design-vue'
 import { defineComponent, h, shallowRef } from 'vue'
@@ -10,8 +10,14 @@ import {
 } from 'ant-design-vue/es/vc-input/utils/commonUtils'
 import { useConversationStore } from '@/stores/conversation'
 import { openai } from '@/utils/alibaba'
+import { storeToRefs } from 'pinia'
 
 const conversationStore = useConversationStore()
+const { currentConversationId } = storeToRefs(conversationStore)
+
+const conversation = computed(() => {
+  return conversationStore.getCurrentConversation()
+})
 
 const CustomTextarea = defineComponent({
   name: 'MyInputTextArea',
@@ -57,7 +63,7 @@ const onSubmit = async (message: string) => {
 
   inputValue.value = ''
   conversationStore.addMessage(message, 'user')
-  conversationStore.isTalking = true
+  conversationStore.setConversationTalking(currentConversationId.value, true)
 
   const waitingMessageId = conversationStore.addMessage('等待中', 'assistant')
 
@@ -85,10 +91,13 @@ const onSubmit = async (message: string) => {
         '抱歉，我暂时无法回答你的问题，请稍后再试。',
       )
     } finally {
-      conversationStore.isTalking = false
+      conversationStore.setConversationTalking(
+        currentConversationId.value,
+        false,
+      )
     }
   } else {
-    conversationStore.isTalking = false
+    conversationStore.setConversationTalking(currentConversationId.value, false)
   }
 }
 </script>
@@ -99,6 +108,7 @@ const onSubmit = async (message: string) => {
       :value="inputValue"
       :components="{ input: CustomTextarea }"
       :auto-size="{ minRows: 2, maxRows: 6 }"
+      :loading="conversation?.isTalking"
       @change="onChange"
       @submit="onSubmit"
     />

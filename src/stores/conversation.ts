@@ -12,6 +12,7 @@ export interface Conversation {
   id: string
   title: string
   messages: Message[]
+  isTalking: boolean
   createdAt: number
   updatedAt: number
 }
@@ -35,6 +36,7 @@ export const useConversationStore = defineStore('conversation', () => {
           timestamp: Date.now(),
         },
       ],
+      isTalking: false,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     },
@@ -55,6 +57,7 @@ export const useConversationStore = defineStore('conversation', () => {
           timestamp: Date.now(),
         },
       ],
+      isTalking: false,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     },
@@ -62,19 +65,26 @@ export const useConversationStore = defineStore('conversation', () => {
       id: '3',
       title: '新会话3',
       messages: [],
+      isTalking: false,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     },
   ])
   const currentConversationId = ref<string>('3')
 
-  const isTalking = ref(false)
+  function setConversationTalking(convId: string, isTalking: boolean) {
+    const conversation = conversations.find(conv => conv.id === convId)
+    if (conversation) {
+      conversation.isTalking = isTalking
+    }
+  }
   // 创建新会话
   function createConversation(title: string) {
     const newConversation: Conversation = {
       id: Date.now().toString(),
       title,
       messages: [],
+      isTalking: false,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     }
@@ -148,7 +158,7 @@ export const useConversationStore = defineStore('conversation', () => {
   return {
     conversations,
     currentConversationId,
-    isTalking,
+    setConversationTalking,
     createConversation,
     addMessage,
     getCurrentConversation,

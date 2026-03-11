@@ -42,7 +42,7 @@ export default defineConfig([
     rules: {
       'no-console': 'warn',
       'no-undef': 'warn', // 禁止使用未定义的变量
-      'no-unused-vars': 'warn',
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       'prettier/prettier': ['error', { endOfLine: 'auto' }],
       'vue/multi-word-component-names': 'off',
     },
