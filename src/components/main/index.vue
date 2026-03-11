@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import Header from '../header/index.vue'
 import InputBox from '../InputBox.vue'
-import { Bubble } from 'ant-design-x-vue'
-import { Flex } from 'ant-design-vue'
-import { computed } from 'vue'
+import { Bubble, type BubbleProps } from 'ant-design-x-vue'
+import { Flex, Typography } from 'ant-design-vue'
+import { computed, h } from 'vue'
 import WelComeBox from '@/components/WelComeBox.vue'
 import { useConversationStore } from '@/stores/conversation'
+import markdownit from 'markdown-it'
+import { UserOutlined } from '@ant-design/icons-vue'
+import hljs from 'highlight.js'
+import 'highlight.js/styles/atom-one-dark.css'
 
 const conversationStore = useConversationStore()
 
@@ -14,6 +18,23 @@ const currentConversation = computed(() =>
     conv => conv.id === conversationStore.currentConversationId,
   ),
 )
+
+const md = markdownit({
+  html: true,
+  breaks: true,
+  highlight: function (str, lang) {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return hljs.highlight(lang, str, true).value
+      } catch (__) {}
+    }
+    return ''
+  },
+})
+const renderMarkdown: BubbleProps['messageRender'] = content =>
+  h(Typography, null, {
+    default: () => h('div', { innerHTML: md.render(content) }),
+  })
 </script>
 
 <template>
@@ -23,16 +44,25 @@ const currentConversation = computed(() =>
       <WelComeBox v-if="currentConversation?.messages.length === 0" />
       <div v-else class="messages">
         <Flex gap="middle" vertical>
-          <Bubble
+          <template
             v-for="item in currentConversation?.messages"
             :key="item.id"
-            :placement="item.role === 'user' ? 'end' : 'start'"
-            :content="item.content"
-            :class="{
-              'assistant-msg': item.role === 'assistant',
-              'user-msg': item.role === 'user',
-            }"
-          />
+          >
+            <Bubble
+              v-if="item.role === 'user'"
+              variant="filled"
+              placement="end"
+              :content="item.content"
+            />
+            <Bubble
+              v-else
+              variant="borderless"
+              placement="start"
+              :content="item.content"
+              :message-render="renderMarkdown"
+              :avatar="{ icon: h(UserOutlined) }"
+            />
+          </template>
         </Flex>
       </div>
     </div>
@@ -119,9 +149,6 @@ const currentConversation = computed(() =>
           )
         );
       }
-    }
-    .assistant-msg {
-      max-width: 80%;
     }
     .works {
       display: flex;

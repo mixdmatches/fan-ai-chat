@@ -4,8 +4,10 @@ import { Sender } from 'ant-design-x-vue'
 import { Textarea } from 'ant-design-vue'
 import { defineComponent, h, shallowRef } from 'vue'
 import { textAreaProps } from 'ant-design-vue/es/input/inputProps'
-import type { InputFocusOptions } from 'ant-design-x-vue/typings/sender/interface'
-import { triggerFocus } from 'ant-design-vue/es/vc-input/utils/commonUtils'
+import {
+  triggerFocus,
+  type InputFocusOptions,
+} from 'ant-design-vue/es/vc-input/utils/commonUtils'
 import { useConversationStore } from '@/stores/conversation'
 import { openai } from '@/utils/alibaba'
 
@@ -75,6 +77,7 @@ const onSubmit = async (message: string) => {
           conversationStore.updateMessage(waitingMessageId, streamContent)
         }
       }
+    } catch (e) {
       console.error('AI 调用错误:', e)
       // 更新等待消息为错误提示
       conversationStore.updateMessage(

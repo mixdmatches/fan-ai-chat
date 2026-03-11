@@ -20,7 +20,10 @@ interface BindingValue {
 const isMobile = () => window.innerWidth < 768
 
 const TooltipDirective: Directive = {
-  mounted(el: CustomHTMLElement, binding: DirectiveBinding<BindingValue | string>) {
+  mounted(
+    el: CustomHTMLElement,
+    binding: DirectiveBinding<BindingValue | string>,
+  ) {
     if (isMobile()) {
       return
     }
@@ -32,7 +35,8 @@ const TooltipDirective: Directive = {
       content = binding.value
     } else {
       content = binding.value.content
-      if (binding.value.placement !== undefined) placement = binding.value.placement
+      if (binding.value.placement !== undefined)
+        placement = binding.value.placement
       if (binding.value.delay !== undefined) delay = binding.value.delay
     }
 
@@ -47,7 +51,10 @@ const TooltipDirective: Directive = {
     })
   },
 
-  updated(el: CustomHTMLElement, binding: DirectiveBinding<BindingValue | string>) {
+  updated(
+    el: CustomHTMLElement,
+    binding: DirectiveBinding<BindingValue | string>,
+  ) {
     let content = ''
     if (typeof binding.value === 'string') {
       content = binding.value
