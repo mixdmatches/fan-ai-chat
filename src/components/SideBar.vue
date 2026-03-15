@@ -27,14 +27,31 @@ const groupedConversations = computed(() => {
     } else if (date === yesterday) {
       groupKey = '昨天'
     } else {
-      groupKey = dayjs(conversation.createdAt).format('MM月DD日')
+      groupKey = dayjs(conversation.createdAt).format('YYYY年MM月DD日')
     }
     if (!groups[groupKey]) {
       groups[groupKey] = []
     }
     groups[groupKey].push(conversation)
   })
-  return groups
+
+  const orderedGroups: Record<string, Conversation[]> = {}
+
+  if (groups['今天']) {
+    orderedGroups['今天'] = groups['今天']
+  }
+
+  if (groups['昨天']) {
+    orderedGroups['昨天'] = groups['昨天']
+  }
+
+  Object.keys(groups).forEach(key => {
+    if (key !== '今天' && key !== '昨天') {
+      orderedGroups[key] = groups[key]
+    }
+  })
+
+  return orderedGroups
 })
 </script>
 

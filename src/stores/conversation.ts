@@ -18,6 +18,11 @@ export interface Conversation {
 }
 
 export const useConversationStore = defineStore('conversation', () => {
+  // 生成合理的时间戳
+  const now = Date.now()
+  const yesterday = now - 24 * 60 * 60 * 1000
+  const twoDaysAgo = now - 48 * 60 * 60 * 1000
+
   const conversations = reactive<Conversation[]>([
     {
       id: '1',
@@ -27,18 +32,18 @@ export const useConversationStore = defineStore('conversation', () => {
           id: nanoid(10),
           role: 'user',
           content: '你好',
-          timestamp: Date.now(),
+          timestamp: twoDaysAgo + 10 * 60 * 1000, // 两天前的10分钟后
         },
         {
           id: nanoid(10),
           role: 'assistant',
           content: '你好，我是FanAI',
-          timestamp: Date.now(),
+          timestamp: twoDaysAgo + 15 * 60 * 1000, // 两天前的15分钟后
         },
       ],
       isTalking: false,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+      createdAt: twoDaysAgo, // 两天前
+      updatedAt: twoDaysAgo + 15 * 60 * 1000, // 两天前的15分钟后
     },
     {
       id: nanoid(10),
@@ -48,26 +53,26 @@ export const useConversationStore = defineStore('conversation', () => {
           id: nanoid(10),
           role: 'user',
           content: '介绍一下自己',
-          timestamp: Date.now(),
+          timestamp: yesterday + 30 * 60 * 1000, // 昨天的30分钟后
         },
         {
           id: nanoid(10),
           role: 'assistant',
           content: '你好，我是FanAI',
-          timestamp: Date.now(),
+          timestamp: yesterday + 35 * 60 * 1000, // 昨天的35分钟后
         },
       ],
       isTalking: false,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+      createdAt: yesterday, // 昨天
+      updatedAt: yesterday + 35 * 60 * 1000, // 昨天的35分钟后
     },
     {
       id: '3',
       title: '新会话3',
       messages: [],
       isTalking: false,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+      createdAt: now, // 现在
+      updatedAt: now, // 现在
     },
   ])
   const currentConversationId = ref<string>('3')

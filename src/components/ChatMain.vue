@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import Header from '../header/index.vue'
-import InputBox from '../InputBox.vue'
+import Header from '@/components/ChatHeader.vue'
+import InputBox from '@/components/InputBox.vue'
 import { Bubble, type BubbleProps } from 'ant-design-x-vue'
 import { Flex, Typography } from 'ant-design-vue'
-import { computed, h, nextTick, ref, watch } from 'vue'
+import { computed, h } from 'vue'
 import WelComeBox from '@/components/WelComeBox.vue'
 import { useConversationStore } from '@/stores/conversation'
 import markdownit from 'markdown-it'

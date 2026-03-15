@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import SideBar from './components/sidebar/index.vue'
-import Main from './components/main/index.vue'
+import SideBar from '@/components/SideBar.vue'
+import Main from '@/components/ChatMain.vue'
 </script>
 
 <template>
