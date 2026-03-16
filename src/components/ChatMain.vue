@@ -3,7 +3,7 @@ import Header from '@/components/ChatHeader.vue'
 import InputBox from '@/components/InputBox.vue'
 import { Bubble, type BubbleProps } from 'ant-design-x-vue'
 import { Flex, Typography } from 'ant-design-vue'
-import { computed, h } from 'vue'
+import { computed, h, ref, watch, nextTick } from 'vue'
 import WelComeBox from '@/components/WelComeBox.vue'
 import { useConversationStore } from '@/stores/conversation'
 import markdownit from 'markdown-it'
@@ -24,9 +24,7 @@ const md = markdownit({
   breaks: true,
   highlight: function (str, lang) {
     if (lang && hljs.getLanguage(lang)) {
-      try {
-        return hljs.highlight(lang, str, true).value
-      } catch (__) {}
+      return hljs.highlight(lang, str, true).value
     }
     return ''
   },
@@ -35,12 +33,43 @@ const renderMarkdown: BubbleProps['messageRender'] = content =>
   h(Typography, null, {
     default: () => h('div', { innerHTML: md.render(content) }),
   })
+
+// 对话滚动到底部
+const scrollBox = ref<HTMLElement | null>(null)
+const lastMessageContent = computed(() => {
+  const length = currentConversation.value?.messages.length || 0
+  if (length) return currentConversation.value?.messages[length - 1].content
+  return 0
+})
+
+const scrollToBottom = async () => {
+  await nextTick()
+  if (scrollBox.value) {
+    scrollBox.value.scrollTop = scrollBox.value.scrollHeight
+  }
+}
+
+watch(
+  () => lastMessageContent.value,
+  () => {
+    scrollToBottom()
+  },
+  { deep: true },
+)
+
+// 监听当前会话变化，也需要滚动到底部
+watch(
+  () => conversationStore.currentConversationId,
+  () => {
+    scrollToBottom()
+  },
+)
 </script>
 
 <template>
   <div class="main">
     <Header />
-    <div class="chat-box">
+    <div ref="scrollBox" class="chat-box">
       <WelComeBox v-if="currentConversation?.messages.length === 0" />
       <div v-else class="messages">
         <Flex gap="middle" vertical>
