@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useSidebarStore } from '@/stores/sidebar'
-import { useConversationStore, type Conversation } from '@/stores/conversation'
+import { useConversationStore } from '@/stores/conversation'
 import { computed } from 'vue'
 import dayjs from 'dayjs'
 import { DeleteOutlined } from '@ant-design/icons-vue'
+import type { Conversation } from '@/types/conversation'
 
 const sidebarStore = useSidebarStore()
 const { toggleSidebar } = sidebarStore

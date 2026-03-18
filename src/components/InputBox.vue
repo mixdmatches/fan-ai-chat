@@ -108,9 +108,14 @@ const onSubmit = async (question: string) => {
 // 取消AI输出
 const onCancel = () => {
   // 直接获取当前对话的最后一条消息
-  const currentConv = conversationStore.getCurrentConversation()
-  if (currentConv && currentConv.messages.length > 0) {
-    const lastMessage = currentConv.messages[currentConv.messages.length - 1]
+  if (
+    currentConversation.value &&
+    currentConversation.value.messages.length > 0
+  ) {
+    const lastMessage =
+      currentConversation.value.messages[
+        currentConversation.value.messages.length - 1
+      ]
     if (lastMessage.role === 'assistant') {
       conversationStore.setMessageStop(lastMessage.id, true)
     }

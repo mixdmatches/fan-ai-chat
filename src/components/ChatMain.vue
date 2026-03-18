@@ -67,49 +67,49 @@ watch(
 <template>
   <div class="main">
     <Header />
-    <div ref="scrollBox" class="chat-box">
-      <WelComeBox v-if="currentConversation?.messages.length === 0" />
-      <div v-else class="messages">
-        <Flex gap="middle" vertical>
-          <template
-            v-for="item in currentConversation?.messages"
-            :key="item.id"
-          >
-            <Bubble
-              v-if="item.role === 'user'"
-              variant="filled"
-              placement="end"
-              :content="item.content"
-            />
-            <template v-if="item.role === 'assistant'">
+    <div class="middle_main">
+      <div ref="scrollBox" class="chat-box">
+        <WelComeBox v-if="currentConversation?.messages.length === 0" />
+        <div v-else class="messages">
+          <Flex gap="middle" vertical>
+            <template
+              v-for="item in currentConversation?.messages"
+              :key="item.id"
+            >
               <Bubble
-                variant="borderless"
-                placement="start"
+                v-if="item.role === 'user'"
+                variant="filled"
+                placement="end"
                 :content="item.content"
-                :message-render="renderMarkdown"
-                :avatar="{ icon: h(UserOutlined) }"
-              >
-                <template v-if="item.isStop" #footer>
-                  <div class="info">已停止输出</div>
-                </template>
-              </Bubble>
+              />
+              <template v-if="item.role === 'assistant'">
+                <Bubble
+                  variant="borderless"
+                  placement="start"
+                  :content="item.content"
+                  :message-render="renderMarkdown"
+                  :avatar="{ icon: h(UserOutlined) }"
+                >
+                  <template v-if="item.isStop" #footer>
+                    <div class="info">已停止输出</div>
+                  </template>
+                </Bubble>
+              </template>
             </template>
-          </template>
-        </Flex>
+          </Flex>
+        </div>
       </div>
+      <!-- <div v-else class="title">FAN_AI_CHAT</div> -->
+      <InputBox />
     </div>
-    <InputBox />
   </div>
 </template>
 
 <style scoped lang="scss">
 .main {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  width: 100vw;
   height: 100vh;
+  overflow: hidden;
   transition: all 0.3s ease;
   @include themify(
     (
@@ -121,6 +121,14 @@ watch(
   body .chat-box {
     padding: $gap-l;
   }
+}
+.middle_main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  gap: 80px;
 }
 .chat-box {
   flex: 1;
@@ -210,5 +218,8 @@ watch(
       color: #4e5969;
     }
   }
+}
+.title {
+  font-size: 3rem;
 }
 </style>
