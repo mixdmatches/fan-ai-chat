@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { Sender } from 'ant-design-x-vue'
-import { Textarea } from 'ant-design-vue'
+import { Textarea, message } from 'ant-design-vue'
 import { defineComponent, h, shallowRef } from 'vue'
 import { textAreaProps } from 'ant-design-vue/es/input/inputProps'
 import {
@@ -60,11 +60,11 @@ const lastMessageStop = computed(() => {
 const onChange = (v: string) => {
   inputValue.value = v
 }
-const onSubmit = async (message: string) => {
-  if (!message.trim()) return
+const onSubmit = async (question: string) => {
+  if (!question.trim()) return message.warn('请输入问题')
 
   inputValue.value = ''
-  conversationStore.addMessage(message, 'user')
+  conversationStore.addMessage(question, 'user')
   conversationStore.setConversationTalking(currentConversationId.value, true)
 
   const waitingMessageId = conversationStore.addMessage('等待中', 'assistant')
@@ -74,7 +74,7 @@ const onSubmit = async (message: string) => {
     try {
       const completion = await openai.chat.completions.create({
         model: 'qwen3.5-flash',
-        messages: [{ role: 'user', content: message }],
+        messages: [{ role: 'user', content: question }],
         stream: true,
         stream_options: { include_usage: false },
       })
