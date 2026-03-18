@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import SideBar from '@/components/SideBar.vue'
-import Main from '@/components/ChatMain.vue'
+import ChatMain from '@/components/ChatMain.vue'
 </script>
 
 <template>
   <div class="app">
     <SideBar />
-    <Main />
+    <ChatMain />
   </div>
 </template>
 
