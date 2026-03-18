@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia'
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { nanoid } from 'nanoid'
 export interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
+  isStop?: boolean
   timestamp: number
 }
 
@@ -38,6 +39,7 @@ export const useConversationStore = defineStore('conversation', () => {
           id: nanoid(10),
           role: 'assistant',
           content: '你好，我是FanAI',
+          isStop: false,
           timestamp: twoDaysAgo + 15 * 60 * 1000, // 两天前的15分钟后
         },
       ],
@@ -59,6 +61,7 @@ export const useConversationStore = defineStore('conversation', () => {
           id: nanoid(10),
           role: 'assistant',
           content: '你好，我是FanAI',
+          isStop: false,
           timestamp: yesterday + 35 * 60 * 1000, // 昨天的35分钟后
         },
       ],
@@ -76,6 +79,22 @@ export const useConversationStore = defineStore('conversation', () => {
     },
   ])
   const currentConversationId = ref<string>('3')
+  const currentConversation = computed(() =>
+    conversations.find(conv => conv.id === currentConversationId.value),
+  )
+
+  function setMessageStop(messId: string, isStop: boolean) {
+    // 遍历所有对话，找到对应的消息
+    for (const conversation of conversations) {
+      const message = conversation.messages.find(mess => mess.id === messId)
+      if (message) {
+        message.isStop = isStop
+        // 确保更新对话的 updatedAt 时间，触发响应式更新
+        conversation.updatedAt = Date.now()
+        break
+      }
+    }
+  }
 
   function setConversationTalking(convId: string, isTalking: boolean) {
     const conversation = conversations.find(conv => conv.id === convId)
@@ -101,34 +120,37 @@ export const useConversationStore = defineStore('conversation', () => {
 
   // 添加消息到当前对话
   function addMessage(content: string, role: 'user' | 'assistant') {
-    const currentConversation = conversations.find(
-      conv => conv.id === currentConversationId.value,
-    )
-    if (currentConversation) {
-      const newMessage: Message = {
-        id: nanoid(10),
-        role,
-        content,
-        timestamp: Date.now(),
-      }
-      currentConversation.messages.push(newMessage)
-      currentConversation.updatedAt = Date.now()
+    if (currentConversation.value) {
+      const newMessage: Message =
+        role === 'user'
+          ? {
+              id: nanoid(10),
+              role,
+              content,
+              timestamp: Date.now(),
+            }
+          : {
+              id: nanoid(10),
+              role,
+              content,
+              isStop: false,
+              timestamp: Date.now(),
+            }
+      currentConversation.value.messages.push(newMessage)
+      currentConversation.value.updatedAt = Date.now()
       return newMessage.id
     }
   }
 
   function updateMessage(messageId: string, content: string) {
-    const currentConversation = conversations.find(
-      conv => conv.id === currentConversationId.value,
-    )
-    if (currentConversation) {
-      const message = currentConversation.messages.find(
+    if (currentConversation.value) {
+      const message = currentConversation.value.messages.find(
         msg => msg.id === messageId,
       )
       if (message) {
         message.content = content
         message.timestamp = Date.now()
-        currentConversation.updatedAt = Date.now()
+        currentConversation.value.updatedAt = Date.now()
       }
     }
   }
@@ -163,6 +185,8 @@ export const useConversationStore = defineStore('conversation', () => {
   return {
     conversations,
     currentConversationId,
+    currentConversation,
+    setMessageStop,
     setConversationTalking,
     createConversation,
     addMessage,

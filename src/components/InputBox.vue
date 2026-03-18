@@ -13,11 +13,8 @@ import { openai } from '@/utils/alibaba'
 import { storeToRefs } from 'pinia'
 
 const conversationStore = useConversationStore()
-const { currentConversationId } = storeToRefs(conversationStore)
-
-const conversation = computed(() => {
-  return conversationStore.getCurrentConversation()
-})
+const { currentConversationId, currentConversation } =
+  storeToRefs(conversationStore)
 
 const CustomTextarea = defineComponent({
   name: 'MyInputTextArea',
@@ -54,6 +51,11 @@ const CustomTextarea = defineComponent({
 })
 
 const inputValue = ref('')
+const lastMessageStop = computed(() => {
+  const length = currentConversation.value?.messages.length || 0
+  if (length) return currentConversation.value?.messages[length - 1].isStop
+  return false
+})
 
 const onChange = (v: string) => {
   inputValue.value = v
@@ -77,6 +79,8 @@ const onSubmit = async (message: string) => {
         stream_options: { include_usage: false },
       })
       for await (const chunk of completion) {
+        // 取消输出
+        if (lastMessageStop.value) return
         const content = chunk.choices[0].delta?.content || ''
         streamContent += content
         if (streamContent) {
@@ -100,6 +104,18 @@ const onSubmit = async (message: string) => {
     conversationStore.setConversationTalking(currentConversationId.value, false)
   }
 }
+
+// 取消AI输出
+const onCancel = () => {
+  // 直接获取当前对话的最后一条消息
+  const currentConv = conversationStore.getCurrentConversation()
+  if (currentConv && currentConv.messages.length > 0) {
+    const lastMessage = currentConv.messages[currentConv.messages.length - 1]
+    if (lastMessage.role === 'assistant') {
+      conversationStore.setMessageStop(lastMessage.id, true)
+    }
+  }
+}
 </script>
 
 <template>
@@ -108,9 +124,10 @@ const onSubmit = async (message: string) => {
       :value="inputValue"
       :components="{ input: CustomTextarea }"
       :auto-size="{ minRows: 2, maxRows: 6 }"
-      :loading="conversation?.isTalking"
+      :loading="currentConversation?.isTalking"
       @change="onChange"
       @submit="onSubmit"
+      @cancel="onCancel"
     />
   </div>
 </template>

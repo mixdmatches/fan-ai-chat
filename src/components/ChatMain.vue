@@ -10,14 +10,12 @@ import markdownit from 'markdown-it'
 import { UserOutlined } from '@ant-design/icons-vue'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/atom-one-dark.css'
+import { storeToRefs } from 'pinia'
 
 const conversationStore = useConversationStore()
 
-const currentConversation = computed(() =>
-  conversationStore.conversations.find(
-    conv => conv.id === conversationStore.currentConversationId,
-  ),
-)
+const { currentConversation, currentConversationId } =
+  storeToRefs(conversationStore)
 
 const md = markdownit({
   html: true,
@@ -39,7 +37,7 @@ const scrollBox = ref<HTMLElement | null>(null)
 const lastMessageContent = computed(() => {
   const length = currentConversation.value?.messages.length || 0
   if (length) return currentConversation.value?.messages[length - 1].content
-  return 0
+  return ''
 })
 
 const scrollToBottom = async () => {
@@ -59,7 +57,7 @@ watch(
 
 // 监听当前会话变化，也需要滚动到底部
 watch(
-  () => conversationStore.currentConversationId,
+  () => currentConversationId.value,
   () => {
     scrollToBottom()
   },
@@ -83,14 +81,19 @@ watch(
               placement="end"
               :content="item.content"
             />
-            <Bubble
-              v-else
-              variant="borderless"
-              placement="start"
-              :content="item.content"
-              :message-render="renderMarkdown"
-              :avatar="{ icon: h(UserOutlined) }"
-            />
+            <template v-if="item.role === 'assistant'">
+              <Bubble
+                variant="borderless"
+                placement="start"
+                :content="item.content"
+                :message-render="renderMarkdown"
+                :avatar="{ icon: h(UserOutlined) }"
+              >
+                <template v-if="item.isStop" #footer>
+                  <div class="info">已停止输出</div>
+                </template>
+              </Bubble>
+            </template>
           </template>
         </Flex>
       </div>
@@ -202,6 +205,9 @@ watch(
       display: flex;
       align-items: center;
       gap: $gap-m;
+    }
+    .info {
+      color: #4e5969;
     }
   }
 }
