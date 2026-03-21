@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Header from '@/components/ChatHeader.vue'
 import InputBox from '@/components/InputBox.vue'
 import { Bubble, type BubbleProps } from 'ant-design-x-vue'
 import { Flex, Typography } from 'ant-design-vue'
@@ -65,58 +64,43 @@ watch(
 </script>
 
 <template>
-  <div class="main">
-    <Header />
-    <div class="middle_main">
-      <div ref="scrollBox" class="chat-box">
-        <WelComeBox v-if="currentConversation?.messages.length === 0" />
-        <div v-else class="messages">
-          <Flex gap="middle" vertical>
-            <template
-              v-for="item in currentConversation?.messages"
-              :key="item.id"
-            >
+  <div class="middle_main">
+    <div ref="scrollBox" class="chat-box">
+      <WelComeBox v-if="currentConversation?.messages.length === 0" />
+      <div v-else class="messages">
+        <Flex gap="middle" vertical>
+          <template
+            v-for="item in currentConversation?.messages"
+            :key="item.id"
+          >
+            <Bubble
+              v-if="item.role === 'user'"
+              variant="filled"
+              placement="end"
+              :content="item.content"
+            />
+            <template v-if="item.role === 'assistant'">
               <Bubble
-                v-if="item.role === 'user'"
-                variant="filled"
-                placement="end"
+                variant="borderless"
+                placement="start"
                 :content="item.content"
-              />
-              <template v-if="item.role === 'assistant'">
-                <Bubble
-                  variant="borderless"
-                  placement="start"
-                  :content="item.content"
-                  :message-render="renderMarkdown"
-                  :avatar="{ icon: h(UserOutlined) }"
-                >
-                  <template v-if="item.isStop" #footer>
-                    <div class="info">已停止输出</div>
-                  </template>
-                </Bubble>
-              </template>
+                :message-render="renderMarkdown"
+                :avatar="{ icon: h(UserOutlined) }"
+              >
+                <template v-if="item.isStop" #footer>
+                  <div class="info">已停止输出</div>
+                </template>
+              </Bubble>
             </template>
-          </Flex>
-        </div>
+          </template>
+        </Flex>
       </div>
-      <!-- <div v-else class="title">FAN_AI_CHAT</div> -->
-      <InputBox />
     </div>
+    <InputBox />
   </div>
 </template>
 
 <style scoped lang="scss">
-.main {
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  @include themify(
-    (
-      background-color: $bg-color,
-    )
-  );
-}
 @media screen and (max-width: 1024px) {
   body .chat-box {
     padding: $gap-l;

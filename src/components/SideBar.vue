@@ -78,23 +78,33 @@ const groupedConversations = computed(() => {
           class="history-talk-group"
         >
           <li class="talk-title">{{ date }}</li>
-          <li
+          <router-link
             v-for="conversation in group"
             :key="conversation.id"
-            :class="{
-              't-item': true,
-              'current-t': conversation.id === currentConversationId,
-            }"
+            :to="'/chat/' + conversation.id"
             @click="conversationStore.switchConversation(conversation.id)"
           >
-            <span>{{ conversation.title }}</span>
-            <DeleteOutlined
-              @click.stop="
-                conversationStore.deleteConversation(conversation.id)
-              "
-            />
-          </li>
+            <li
+              :class="{
+                't-item': true,
+                'current-t': conversation.id === currentConversationId,
+              }"
+            >
+              <span>{{ conversation.title }}</span>
+              <DeleteOutlined
+                @click.stop="
+                  conversationStore.deleteConversation(conversation.id)
+                "
+              />
+            </li>
+          </router-link>
         </ul>
+      </div>
+
+      <div class="bottom">
+        <router-link to="/settings">
+          <a-button style="width: 100%" type="primary" ghost> 设置 </a-button>
+        </router-link>
       </div>
     </div>
   </transition>
@@ -191,6 +201,9 @@ const groupedConversations = computed(() => {
       background-color: $primary-color;
       color: $text-color-hover;
     }
+  }
+  .bottom {
+    margin-top: auto;
   }
 }
 </style>
