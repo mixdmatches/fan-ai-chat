@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { Sender } from 'ant-design-x-vue'
 import { Textarea, message } from 'ant-design-vue'
 import { defineComponent, h, shallowRef } from 'vue'
@@ -12,10 +12,14 @@ import { useConversationStore } from '@/stores/conversation'
 import { openai } from '@/utils/alibaba'
 import { storeToRefs } from 'pinia'
 
+const emit = defineEmits(['changeIsThinking'])
+
+// 对话仓库
 const conversationStore = useConversationStore()
-const { currentConversationId, currentConversation } =
+const { currentConversationId, currentConversation, lastMessage } =
   storeToRefs(conversationStore)
 
+// 自定义文本域组件
 const CustomTextarea = defineComponent({
   name: 'MyInputTextArea',
   props: textAreaProps(),
@@ -50,16 +54,15 @@ const CustomTextarea = defineComponent({
   },
 })
 
+// 输入框值
 const inputValue = ref('')
-const lastMessageStop = computed(() => {
-  const length = currentConversation.value?.messages.length || 0
-  if (length) return currentConversation.value?.messages[length - 1].isStop
-  return false
-})
 
+// 输入框值改变时触发
 const onChange = (v: string) => {
   inputValue.value = v
 }
+
+// 提交问题时触发
 const onSubmit = async (question: string) => {
   if (!question.trim()) return message.warn('请输入问题')
 
@@ -67,33 +70,51 @@ const onSubmit = async (question: string) => {
   conversationStore.addMessage(question, 'user')
   conversationStore.setConversationTalking(currentConversationId.value, true)
 
-  const waitingMessageId = conversationStore.addMessage('等待中', 'assistant')
+  const waitingMessageId = conversationStore.addMessage('', 'assistant')
 
   if (waitingMessageId) {
     let streamContent = ''
+    let streamThinkContent = ''
+    const newMessage = { ...lastMessage.value }
     try {
       const completion = await openai.chat.completions.create({
         model: 'qwen3.5-flash',
-        messages: [{ role: 'user', content: question }],
+        messages: [
+          {
+            role: 'system',
+            content: '尽可能精简回答，消耗最少的token',
+          },
+          { role: 'user', content: question },
+        ],
         stream: true,
         stream_options: { include_usage: false },
       })
       for await (const chunk of completion) {
         // 取消输出
-        if (lastMessageStop.value) return
+        if (lastMessage.value?.isStop) return
+        console.log(chunk)
         const content = chunk.choices[0].delta?.content || ''
+        const thinkContent = chunk.choices[0].delta?.reasoning_content || ''
         streamContent += content
+        streamThinkContent += thinkContent
+
+        if (thinkContent) {
+          emit('changeIsThinking', true)
+          newMessage.thinkContent = streamThinkContent
+          conversationStore.updateMessage(waitingMessageId, newMessage)
+        }
         if (streamContent) {
-          conversationStore.updateMessage(waitingMessageId, streamContent)
+          newMessage.content = streamContent
+          conversationStore.updateMessage(waitingMessageId, newMessage)
+          emit('changeIsThinking', false)
         }
       }
-    } catch (e) {
-      console.error('AI 调用错误:', e)
+    } catch (_error) {
       // 更新等待消息为错误提示
-      conversationStore.updateMessage(
-        waitingMessageId,
-        '抱歉，我暂时无法回答你的问题，请稍后再试。',
-      )
+      conversationStore.updateMessage(waitingMessageId, {
+        ...newMessage,
+        content: '抱歉，我暂时无法回答你的问题，请稍后再试。',
+      })
     } finally {
       conversationStore.setConversationTalking(
         currentConversationId.value,
@@ -107,17 +128,12 @@ const onSubmit = async (question: string) => {
 
 // 取消AI输出
 const onCancel = () => {
-  // 直接获取当前对话的最后一条消息
   if (
     currentConversation.value &&
     currentConversation.value.messages.length > 0
   ) {
-    const lastMessage =
-      currentConversation.value.messages[
-        currentConversation.value.messages.length - 1
-      ]
-    if (lastMessage.role === 'assistant') {
-      conversationStore.setMessageStop(lastMessage.id, true)
+    if (lastMessage.value.role === 'assistant') {
+      conversationStore.setMessageStop(lastMessage.value.id, true)
     }
   }
 }

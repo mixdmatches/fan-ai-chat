@@ -1,19 +1,25 @@
 <script setup lang="ts">
 import InputBox from '@/components/InputBox.vue'
 import { Bubble, type BubbleProps } from 'ant-design-x-vue'
-import { Flex, Typography } from 'ant-design-vue'
-import { computed, h, ref, watch, nextTick } from 'vue'
+import { Flex, Typography, Space, Button, FloatButton } from 'ant-design-vue'
+import { h, ref, watch, nextTick } from 'vue'
 import WelComeBox from '@/components/WelComeBox.vue'
 import { useConversationStore } from '@/stores/conversation'
 import markdownit from 'markdown-it'
-import { UserOutlined } from '@ant-design/icons-vue'
+import {
+  UserOutlined,
+  BulbOutlined,
+  UpOutlined,
+  DownOutlined,
+  LoadingOutlined,
+} from '@ant-design/icons-vue'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/atom-one-dark.css'
 import { storeToRefs } from 'pinia'
 
 const conversationStore = useConversationStore()
 
-const { currentConversation, currentConversationId } =
+const { currentConversation, currentConversationId, lastMessage } =
   storeToRefs(conversationStore)
 
 const md = markdownit({
@@ -31,13 +37,13 @@ const renderMarkdown: BubbleProps['messageRender'] = content =>
     default: () => h('div', { innerHTML: md.render(content) }),
   })
 
+const thinkRenderMarkdown: BubbleProps['messageRender'] = content =>
+  h(Typography, null, {
+    default: () => h('div', { innerHTML: md.render(content) }),
+  })
+
 // 对话滚动到底部
 const scrollBox = ref<HTMLElement | null>(null)
-const lastMessageContent = computed(() => {
-  const length = currentConversation.value?.messages.length || 0
-  if (length) return currentConversation.value?.messages[length - 1].content
-  return ''
-})
 
 const scrollToBottom = async () => {
   await nextTick()
@@ -47,25 +53,33 @@ const scrollToBottom = async () => {
 }
 
 watch(
-  () => lastMessageContent.value,
+  [
+    () => lastMessage.value.content,
+    () => lastMessage.value.thinkContent,
+    () => currentConversationId.value,
+  ],
   () => {
     scrollToBottom()
   },
   { deep: true },
 )
 
-// 监听当前会话变化，也需要滚动到底部
-watch(
-  () => currentConversationId.value,
-  () => {
-    scrollToBottom()
-  },
-)
+const isThinking = ref(false)
+const changeIsThinking = (v: boolean) => {
+  isThinking.value = v
+  if (!isThinking.value) collapseStates.value[lastMessage.value.id] = false
+}
+const collapseStates = ref<Record<string, boolean>>({})
+
+const onTopClick = () => {
+  scrollToBottom()
+}
 </script>
 
 <template>
   <div class="middle_main">
     <div ref="scrollBox" class="chat-box">
+      <FloatButton @click="onTopClick" />
       <WelComeBox v-if="currentConversation?.messages.length === 0" />
       <div v-else class="messages">
         <Flex gap="middle" vertical>
@@ -83,11 +97,46 @@ watch(
               <Bubble
                 variant="borderless"
                 placement="start"
-                :content="item.content"
-                :message-render="renderMarkdown"
                 :avatar="{ icon: h(UserOutlined) }"
               >
-                <template v-if="item.isStop" #footer>
+                <template #message>
+                  <Space align="baseline">
+                    <BulbOutlined />
+                    <span>{{ isThinking ? '思考中...' : '已深度思考' }}</span>
+                    <Button
+                      type="text"
+                      size="small"
+                      style="background: transparent"
+                      :icon="
+                        collapseStates[item.id]
+                          ? h(UpOutlined)
+                          : h(DownOutlined)
+                      "
+                      @click="
+                        () =>
+                          (collapseStates[item.id] = !collapseStates[item.id])
+                      "
+                    />
+                  </Space>
+                </template>
+                <template #footer>
+                  <Space direction="vertical">
+                    <Bubble
+                      v-show="collapseStates[item.id]"
+                      variant="borderless"
+                      :content="item.thinkContent"
+                      :message-render="thinkRenderMarkdown"
+                    />
+                    <LoadingOutlined v-if="isThinking" />
+                    <Bubble
+                      variant="borderless"
+                      style="margin-top: -24px"
+                      :content="item.content"
+                      :message-render="renderMarkdown"
+                    />
+                  </Space>
+                </template>
+                <template v-if="item.isStop">
                   <div class="info">已停止输出</div>
                 </template>
               </Bubble>
@@ -96,7 +145,11 @@ watch(
         </Flex>
       </div>
     </div>
-    <InputBox />
+    <InputBox
+      :is-thinking="isThinking"
+      :collapse-states="collapseStates"
+      @change-is-thinking="changeIsThinking"
+    />
   </div>
 </template>
 

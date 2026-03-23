@@ -7,7 +7,9 @@ import SideBar from '@/components/SideBar.vue'
     <SideBar />
     <div class="chat-main">
       <ChatHeader />
-      <router-view></router-view>
+      <div class="chat-content">
+        <router-view></router-view>
+      </div>
     </div>
   </div>
 </template>
@@ -28,6 +30,12 @@ import SideBar from '@/components/SideBar.vue'
   .chat-main > router-view {
     flex: 1;
     overflow-y: auto;
+  }
+  .chat-content {
+    border-top: 1px solid #e4e7ed;
+    border-left: 1px solid #e4e7ed;
+    border-radius: 8px;
+    padding: $gap-m;
   }
 }
 </style>

@@ -6,6 +6,7 @@ import { computed } from 'vue'
 import dayjs from 'dayjs'
 import { DeleteOutlined } from '@ant-design/icons-vue'
 import type { Conversation } from '@/types/conversation'
+import router from '@/routers'
 
 const sidebarStore = useSidebarStore()
 const { toggleSidebar } = sidebarStore
@@ -21,14 +22,17 @@ const groupedConversations = computed(() => {
     const date = dayjs(conversation.createdAt).format('YYYY-MM-DD')
     const today = dayjs().format('YYYY-MM-DD')
     const yesterday = dayjs().subtract(1, 'day').format('YYYY-MM-DD')
+    const sevenDaysAgo = dayjs().subtract(7, 'day').format('YYYY-MM-DD')
 
     let groupKey
     if (date === today) {
       groupKey = '今天'
     } else if (date === yesterday) {
       groupKey = '昨天'
+    } else if (date >= sevenDaysAgo) {
+      groupKey = '七天前'
     } else {
-      groupKey = dayjs(conversation.createdAt).format('YYYY年MM月DD日')
+      groupKey = dayjs(conversation.createdAt).format('YYYY-MM')
     }
     if (!groups[groupKey]) {
       groups[groupKey] = []
@@ -54,6 +58,11 @@ const groupedConversations = computed(() => {
 
   return orderedGroups
 })
+
+const onChangeTalk = (conversationId: string) => {
+  router.push(`/chat/${conversationId}`)
+  conversationStore.switchConversation(conversationId)
+}
 </script>
 
 <template>
@@ -78,26 +87,22 @@ const groupedConversations = computed(() => {
           class="history-talk-group"
         >
           <li class="talk-title">{{ date }}</li>
-          <router-link
+          <li
             v-for="conversation in group"
             :key="conversation.id"
-            :to="'/chat/' + conversation.id"
-            @click="conversationStore.switchConversation(conversation.id)"
+            :class="{
+              't-item': true,
+              'current-t': conversation.id === currentConversationId,
+            }"
+            @click.stop="onChangeTalk(conversation.id)"
           >
-            <li
-              :class="{
-                't-item': true,
-                'current-t': conversation.id === currentConversationId,
-              }"
-            >
-              <span>{{ conversation.title }}</span>
-              <DeleteOutlined
-                @click.stop="
-                  conversationStore.deleteConversation(conversation.id)
-                "
-              />
-            </li>
-          </router-link>
+            <span>{{ conversation.title }}</span>
+            <DeleteOutlined
+              @click.stop="
+                conversationStore.deleteConversation(conversation.id)
+              "
+            />
+          </li>
         </ul>
       </div>
 
@@ -140,8 +145,7 @@ const groupedConversations = computed(() => {
   gap: $gap-m;
   height: 100%;
   padding: $gap-m;
-  border-right: 1px solid #e4e7ed;
-  background-color: #fff;
+  background-color: #f9fbfc;
   @include themify(
     (
       background-color: $sidebar-color,

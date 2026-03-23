@@ -1,161 +1,40 @@
 import { defineStore } from 'pinia'
 import { computed, reactive, ref, onMounted } from 'vue'
 import { nanoid } from 'nanoid'
-import { addData, openDB, updateDB, cursorGetData } from '@/utils/indexDB'
-import type { Conversation, Message } from '@/types/conversation'
+import type {
+  AssistantMessage,
+  Conversation,
+  UserMessage,
+} from '@/types/conversation'
+import {
+  loadConversationsFromDB,
+  saveAllToDB,
+  saveToDB,
+} from '@/services/storage'
 
 export const useConversationStore = defineStore('conversation', () => {
-  const conversations = reactive<Conversation[]>([])
-  const currentConversationId = ref<string>('3')
+  const conversations = reactive<Conversation[]>([]) // 所有对话
+  const currentConversationId = ref<string>('3') // 当前对话id
   const currentConversation = computed(() =>
     conversations.find(conv => conv.id === currentConversationId.value),
-  )
+  ) // 当前对话
+  const lastMessage = computed(() => {
+    const length = currentConversation.value?.messages.length || 0
+    if (length)
+      return currentConversation.value?.messages[length - 1] as AssistantMessage
+    return {} as AssistantMessage
+  }) // 当前对话的最后一条消息
 
-  // 从 IndexedDB 加载数据
-  async function loadFromDB() {
-    try {
-      const db = await openDB('fan-ai-chat', 1)
-      const savedConversations = await cursorGetData(db, 'conversations')
-
-      if (savedConversations && savedConversations.length > 0) {
-        // 清空现有数据
-        conversations.length = 0
-        savedConversations.forEach(conv => conversations.push(conv))
-        if (savedConversations.length > 0) {
-          currentConversationId.value = savedConversations[0].id
-        }
-      } else {
-        // 如果没有保存的数据，初始化默认数据
-        initDefaultConversations()
-      }
-      return true
-    } catch (error) {
-      console.error('加载数据失败:', error)
-      // 加载失败时初始化默认数据
-      initDefaultConversations()
-      return false
-    }
+  function setCurrentConversationId(convId: string) {
+    currentConversationId.value = convId
   }
-
-  // 初始化默认对话数据
-  function initDefaultConversations() {
-    // 生成合理的时间戳
-    const now = Date.now()
-    const yesterday = now - 24 * 60 * 60 * 1000
-    const twoDaysAgo = now - 48 * 60 * 60 * 1000
-
-    const defaultConversations: Conversation[] = [
-      {
-        id: '1',
-        title: '新会话1',
-        messages: [
-          {
-            id: nanoid(10),
-            role: 'user',
-            content: '你好',
-            timestamp: twoDaysAgo + 10 * 60 * 1000, // 两天前的10分钟后
-          },
-          {
-            id: nanoid(10),
-            role: 'assistant',
-            content: '你好，我是FanAI',
-            isStop: false,
-            timestamp: twoDaysAgo + 15 * 60 * 1000, // 两天前的15分钟后
-          },
-        ],
-        isTalking: false,
-        createdAt: twoDaysAgo, // 两天前
-        updatedAt: twoDaysAgo + 15 * 60 * 1000, // 两天前的15分钟后
-      },
-      {
-        id: nanoid(10),
-        title: '新会话2',
-        messages: [
-          {
-            id: nanoid(10),
-            role: 'user',
-            content: '介绍一下自己',
-            timestamp: yesterday + 30 * 60 * 1000, // 昨天的30分钟后
-          },
-          {
-            id: nanoid(10),
-            role: 'assistant',
-            content: '你好，我是FanAI',
-            isStop: false,
-            timestamp: yesterday + 35 * 60 * 1000, // 昨天的35分钟后
-          },
-        ],
-        isTalking: false,
-        createdAt: yesterday, // 昨天
-        updatedAt: yesterday + 35 * 60 * 1000, // 昨天的35分钟后
-      },
-      {
-        id: '3',
-        title: '新会话3',
-        messages: [],
-        isTalking: false,
-        createdAt: now, // 现在
-        updatedAt: now, // 现在
-      },
-    ]
-
-    // 添加默认数据到 conversations
-    defaultConversations.forEach(conv => conversations.push(conv))
-    // 保存默认数据到 IndexedDB
-    saveAllToDB()
-  }
-
-  // 保存所有对话到 IndexedDB
-  async function saveAllToDB() {
-    try {
-      const db = await openDB('fan-ai-chat', 1)
-      // 清空现有数据
-      const clearRequest = db
-        .transaction('conversations', 'readwrite')
-        .objectStore('conversations')
-        .clear()
-
-      clearRequest.onsuccess = function () {
-        // 保存所有对话
-        conversations.forEach(conversation => {
-          const serializableConversation = JSON.parse(
-            JSON.stringify(conversation),
-          )
-          addData(db, 'conversations', serializableConversation)
-        })
-      }
-
-      clearRequest.onerror = function () {
-        console.error('清空数据失败')
-      }
-    } catch (error) {
-      console.error('保存数据失败:', error)
-    }
-  }
-
-  // 保存单个对话到 IndexedDB
-  async function saveToDB(conversation: Conversation) {
-    try {
-      const db = await openDB('fan-ai-chat', 1)
-      // 使用 JSON 序列化/反序列化来确保对象可以被正确存储
-      const serializableConversation = JSON.parse(JSON.stringify(conversation))
-      updateDB(db, 'conversations', serializableConversation)
-    } catch (error) {
-      console.error('保存数据失败:', error)
-    }
-  }
-
-  // 组件挂载时加载数据
-  onMounted(() => {
-    loadFromDB()
-  })
 
   function setMessageStop(messId: string, isStop: boolean) {
     // 遍历所有对话，找到对应的消息
     for (const conversation of conversations) {
       const message = conversation.messages.find(mess => mess.id === messId)
       if (message) {
-        message.isStop = isStop
+        ;(message as AssistantMessage).isStop = isStop
         // 确保更新对话的 updatedAt 时间，触发响应式更新
         conversation.updatedAt = Date.now()
         break
@@ -189,7 +68,7 @@ export const useConversationStore = defineStore('conversation', () => {
   // 添加消息到当前对话
   function addMessage(content: string, role: 'user' | 'assistant') {
     if (currentConversation.value) {
-      const newMessage: Message =
+      const newMessage: UserMessage | AssistantMessage =
         role === 'user'
           ? {
               id: nanoid(10),
@@ -201,6 +80,7 @@ export const useConversationStore = defineStore('conversation', () => {
               id: nanoid(10),
               role,
               content,
+              thinkContent: '',
               isStop: false,
               timestamp: Date.now(),
             }
@@ -212,13 +92,18 @@ export const useConversationStore = defineStore('conversation', () => {
     }
   }
 
-  function updateMessage(messageId: string, content: string) {
+  function updateMessage(
+    messageId: string,
+    newMessage: AssistantMessage | UserMessage,
+  ) {
     if (currentConversation.value) {
       const message = currentConversation.value.messages.find(
         msg => msg.id === messageId,
       )
       if (message) {
-        message.content = content
+        Object.assign(message, {
+          ...newMessage,
+        })
         message.timestamp = Date.now()
         currentConversation.value.updatedAt = Date.now()
         // 保存到 IndexedDB
@@ -254,15 +139,47 @@ export const useConversationStore = defineStore('conversation', () => {
         currentConversationId.value = conversations[0].id
       }
       // 保存到 IndexedDB
-      await saveAllToDB()
+      await saveAllToDB(conversations)
     }
   }
+
+  // 加载数据
+  async function loadData() {
+    const savedConversations = await loadConversationsFromDB()
+    if (savedConversations.length > 0) {
+      savedConversations.forEach(conv => {
+        conversations.push(conv)
+      })
+      currentConversationId.value = savedConversations[0].id
+    } else {
+      initDefaultConversations()
+    }
+  }
+
+  // 初始化默认数据
+  function initDefaultConversations() {
+    // 创建默认对话数据
+    const defaultConversations: Conversation[] = []
+    defaultConversations.forEach(conv => {
+      conversations.push(conv)
+    })
+    currentConversationId.value = defaultConversations[0].id
+    // 保存到数据库
+    saveAllToDB(defaultConversations)
+  }
+
+  // 组件挂载时加载数据
+  onMounted(() => {
+    loadData()
+  })
 
   return {
     conversations,
     currentConversationId,
     currentConversation,
+    lastMessage,
     setMessageStop,
+    setCurrentConversationId,
     setConversationTalking,
     createConversation,
     addMessage,
@@ -270,7 +187,5 @@ export const useConversationStore = defineStore('conversation', () => {
     deleteConversation,
     updateMessage,
     getMessage,
-    loadFromDB,
-    saveAllToDB,
   }
 })
