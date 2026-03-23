@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import SideBar from '@/components/SideBar.vue'
+import ChatHeader from '@/components/ChatHeader.vue'
 </script>
 
 <template>

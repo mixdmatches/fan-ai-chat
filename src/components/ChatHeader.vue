@@ -1,16 +1,11 @@
 <script setup lang="ts">
-// import { storeToRefs } from 'pinia'
+import { storeToRefs } from 'pinia'
 import { useConversationStore } from '@/stores/conversation'
 import { useSidebarStore } from '@/stores/sidebar'
-import { computed } from 'vue'
 // import { useThemeStore } from '@/stores/theme'
 
 const conversationStore = useConversationStore()
-const currentConversation = computed(() =>
-  conversationStore.conversations.find(
-    conversation => conversation.id === conversationStore.currentConversationId,
-  ),
-)
+const { currentConversation } = storeToRefs(conversationStore)
 const sidebarStore = useSidebarStore()
 // const themeStore = useThemeStore()
 

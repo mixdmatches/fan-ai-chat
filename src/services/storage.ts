@@ -7,15 +7,15 @@ export async function loadConversationsFromDB() {
   try {
     const db = await openDB('fan-ai-chat', 1)
     const savedConversations = await cursorGetData(db, 'conversations')
-    return savedConversations
+    return savedConversations as unknown as Conversation[]
   } catch (error) {
     console.error('加载数据失败:', error)
-    return []
+    return [] as Conversation[]
   }
 }
 
 // 初始化默认对话数据
-export function initDefaultConversations() {
+export async function initDefaultConversations() {
   // 生成合理的时间戳
   const now = Date.now()
   const yesterday = now - 24 * 60 * 60 * 1000
