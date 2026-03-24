@@ -3,6 +3,7 @@ import InputBox from '@/components/InputBox.vue'
 import { Bubble, type BubbleProps } from 'ant-design-x-vue'
 import { Flex, Typography, Space, Button, FloatButton } from 'ant-design-vue'
 import { h, ref, watch, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 import WelComeBox from '@/components/WelComeBox.vue'
 import { useConversationStore } from '@/stores/conversation'
 import markdownit from 'markdown-it'
@@ -18,6 +19,7 @@ import 'highlight.js/styles/atom-one-dark.css'
 import { storeToRefs } from 'pinia'
 
 const conversationStore = useConversationStore()
+const route = useRoute()
 
 const { currentConversation, currentConversationId, lastMessage } =
   storeToRefs(conversationStore)
@@ -69,15 +71,22 @@ const changeIsThinking = (v: boolean) => {
   isThinking.value = v
   if (!isThinking.value) collapseStates.value[lastMessage.value.id] = false
 }
-const collapseStates = ref<Record<string, boolean>>({})
 
+const collapseStates = ref<Record<string, boolean>>({})
 const onTopClick = () => {
   scrollToBottom()
 }
 </script>
 
 <template>
-  <div class="middle_main">
+  <div
+    v-if="route.params.id === 'new' || currentConversationId === ''"
+    class="middle_title_main"
+  >
+    <div class="title">FAN_AI_CHAT</div>
+    <InputBox></InputBox>
+  </div>
+  <div v-else class="middle_main">
     <div ref="scrollBox" class="chat-box">
       <FloatButton @click="onTopClick" />
       <WelComeBox v-if="currentConversation?.messages.length === 0" />
@@ -135,9 +144,7 @@ const onTopClick = () => {
                       :message-render="renderMarkdown"
                     />
                   </Space>
-                </template>
-                <template v-if="item.isStop">
-                  <div class="info">已停止输出</div>
+                  <div v-if="item.isStop" class="info">已停止输出</div>
                 </template>
               </Bubble>
             </template>
@@ -158,6 +165,15 @@ const onTopClick = () => {
   body .chat-box {
     padding: $gap-l;
   }
+}
+.middle_title_main {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 200px;
 }
 .middle_main {
   display: flex;

@@ -33,6 +33,9 @@ import ChatHeader from '@/components/ChatHeader.vue'
     overflow-y: auto;
   }
   .chat-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     border-top: 1px solid #e4e7ed;
     border-left: 1px solid #e4e7ed;
     border-radius: 8px;

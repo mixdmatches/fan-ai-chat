@@ -11,6 +11,10 @@ import {
 import { useConversationStore } from '@/stores/conversation'
 import { openai } from '@/utils/alibaba'
 import { storeToRefs } from 'pinia'
+import { useRouter, useRoute } from 'vue-router'
+
+const router = useRouter()
+const route = useRoute()
 
 const emit = defineEmits(['changeIsThinking'])
 
@@ -66,6 +70,15 @@ const onChange = (v: string) => {
 const onSubmit = async (question: string) => {
   if (!question.trim()) return message.warn('请输入问题')
 
+  // 如果当前没有对话，先创建一个新对话
+  if (currentConversationId.value === '') {
+    const conv = await conversationStore.createConversation(
+      question.slice(0, 5),
+    )
+    if (route.params.id === 'new') {
+      router.push('/chat/' + conv.id)
+    }
+  }
   inputValue.value = ''
   conversationStore.addMessage(question, 'user')
   conversationStore.setConversationTalking(currentConversationId.value, true)
@@ -80,10 +93,7 @@ const onSubmit = async (question: string) => {
       const completion = await openai.chat.completions.create({
         model: 'qwen3.5-flash',
         messages: [
-          {
-            role: 'system',
-            content: '尽可能精简回答，消耗最少的token',
-          },
+         
           { role: 'user', content: question },
         ],
         stream: true,
@@ -134,6 +144,11 @@ const onCancel = () => {
   ) {
     if (lastMessage.value.role === 'assistant') {
       conversationStore.setMessageStop(lastMessage.value.id, true)
+      conversationStore.setConversationTalking(
+        currentConversationId.value,
+        false,
+      )
+      emit('changeIsThinking', false)
     }
   }
 }

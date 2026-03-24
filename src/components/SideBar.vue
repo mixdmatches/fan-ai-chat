@@ -63,6 +63,19 @@ const onChangeTalk = (conversationId: string) => {
   router.push(`/chat/${conversationId}`)
   conversationStore.switchConversation(conversationId)
 }
+
+const onAddConversation = () => {
+  router.push('/chat/new')
+  conversationStore.setCurrentConversationId('')
+}
+
+const onDeleteClick = (convId: string) => {
+  conversationStore.deleteConversation(convId)
+  if (conversations.value.length === 0) {
+    router.push('/chat/new')
+    conversationStore.setCurrentConversationId('')
+  }
+}
 </script>
 
 <template>
@@ -74,10 +87,7 @@ const onChangeTalk = (conversationId: string) => {
           <font-awesome-icon icon="circle-chevron-left" size="lg" />
         </span>
       </span>
-      <a-button
-        type="primary"
-        ghost
-        @click="conversationStore.createConversation('新对话')"
+      <a-button type="primary" ghost @click="onAddConversation"
         >添加新对话</a-button
       >
       <div class="talk-histories">
@@ -97,11 +107,7 @@ const onChangeTalk = (conversationId: string) => {
             @click.stop="onChangeTalk(conversation.id)"
           >
             <span>{{ conversation.title }}</span>
-            <DeleteOutlined
-              @click.stop="
-                conversationStore.deleteConversation(conversation.id)
-              "
-            />
+            <DeleteOutlined @click.stop="onDeleteClick(conversation.id)" />
           </li>
         </ul>
       </div>
@@ -178,6 +184,7 @@ const onChangeTalk = (conversationId: string) => {
       padding: $gap-s;
       font-size: $fs-m;
       cursor: pointer;
+      border: 1px solid #e5e8ee;
       white-space: nowrap; // 文本不换行
       overflow: hidden; // 溢出内容隐藏
       text-overflow: ellipsis; // 溢出部分用省略号表示

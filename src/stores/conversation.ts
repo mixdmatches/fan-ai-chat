@@ -25,6 +25,38 @@ export const useConversationStore = defineStore('conversation', () => {
     return {} as AssistantMessage
   }) // 当前对话的最后一条消息
 
+  // 更新对话
+  async function updateConversation(newConv: Conversation) {
+    const oldConv = conversations.find(conv => conv.id === newConv.id)
+    if (oldConv) {
+      newConv.updatedAt = Date.now()
+      Object.assign(oldConv, newConv)
+      await saveToDB(oldConv)
+    }
+  }
+
+  // 切换对话
+  function switchConversation(conversationId: string) {
+    currentConversationId.value = conversationId
+  }
+
+  // 删除会话
+  async function deleteConversation(conversationId: string) {
+    const index = conversations.findIndex(conv => conv.id === conversationId)
+    if (index > -1) {
+      conversations.splice(index, 1)
+      // 如果删除的是当前会话，切换到第一个会话
+      if (
+        currentConversationId.value === conversationId &&
+        conversations.length > 0
+      ) {
+        currentConversationId.value = conversations[0].id
+      }
+      // 保存到 IndexedDB
+      await saveAllToDB(conversations)
+    }
+  }
+
   function setCurrentConversationId(convId: string) {
     currentConversationId.value = convId
   }
@@ -121,28 +153,6 @@ export const useConversationStore = defineStore('conversation', () => {
     }
   }
 
-  // 切换对话
-  function switchConversation(conversationId: string) {
-    currentConversationId.value = conversationId
-  }
-
-  // 删除会话
-  async function deleteConversation(conversationId: string) {
-    const index = conversations.findIndex(conv => conv.id === conversationId)
-    if (index > -1) {
-      conversations.splice(index, 1)
-      // 如果删除的是当前会话，切换到第一个会话
-      if (
-        currentConversationId.value === conversationId &&
-        conversations.length > 0
-      ) {
-        currentConversationId.value = conversations[0].id
-      }
-      // 保存到 IndexedDB
-      await saveAllToDB(conversations)
-    }
-  }
-
   // 加载数据
   async function loadData() {
     const savedConversations = await loadConversationsFromDB()
@@ -163,7 +173,9 @@ export const useConversationStore = defineStore('conversation', () => {
     defaultConversations.forEach(conv => {
       conversations.push(conv)
     })
-    currentConversationId.value = defaultConversations[0].id
+    currentConversationId.value = defaultConversations[0]
+      ? defaultConversations[0].id
+      : ''
     // 保存到数据库
     saveAllToDB(defaultConversations)
   }
@@ -178,6 +190,7 @@ export const useConversationStore = defineStore('conversation', () => {
     currentConversationId,
     currentConversation,
     lastMessage,
+    updateConversation,
     setMessageStop,
     setCurrentConversationId,
     setConversationTalking,
