@@ -102,7 +102,7 @@ const onDeleteClick = (convId: string) => {
             :key="conversation.id"
             :class="{
               't-item': true,
-              'current-t': conversation.id === currentConversationId,
+              'current-t': conversation.id === $route.params.id,
             }"
             @click.stop="onChangeTalk(conversation.id)"
           >

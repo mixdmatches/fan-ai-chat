@@ -21,7 +21,7 @@ const { toggleSidebar } = sidebarStore
         <font-awesome-icon icon="bars" />
       </i>
     </div>
-    <div v-show="conversationStore.conversations.length > 0" class="title">
+    <div v-show="conversationStore.currentConversationId !== ''" class="title">
       <p>{{ currentConversation?.title }}</p>
       <i class="i-icon">
         <font-awesome-icon icon="angle-down" />

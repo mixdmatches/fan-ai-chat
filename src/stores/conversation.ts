@@ -14,7 +14,7 @@ import {
 
 export const useConversationStore = defineStore('conversation', () => {
   const conversations = reactive<Conversation[]>([]) // 所有对话
-  const currentConversationId = ref<string>('3') // 当前对话id
+  const currentConversationId = ref<string>('') // 当前对话id
   const currentConversation = computed(() =>
     conversations.find(conv => conv.id === currentConversationId.value),
   ) // 当前对话
